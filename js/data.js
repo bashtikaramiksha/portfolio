@@ -38,7 +38,8 @@ const defaultPortfolioData = {
       image: "career_guidance.png",
       gradient: "linear-gradient(135deg,#1a1040,#2d1b69,#7c3aed)",
       desc: "An intelligent web application that helps students and professionals discover ideal career paths through skill assessments, personality analysis, and personalized job recommendations.",
-      tags: ["HTML", "CSS", "JavaScript", "Node.js"]
+      tags: ["HTML", "CSS", "JavaScript", "Node.js"],
+      demo: "https://carrier-path-g693.onrender.com/dashboard.html"
     }
   ],
   education: [

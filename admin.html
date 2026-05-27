@@ -615,16 +615,17 @@
 
       <form id="login-form" novalidate>
         <div class="lf-group">
-          <label class="lf-label" for="lf-username">Username</label>
+          <label class="lf-label" for="lf-email">Email Address</label>
           <div class="lf-input-wrap">
             <span class="lf-input-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
               </svg>
             </span>
-            <input class="lf-input" type="text" id="lf-username" placeholder="admin" autocomplete="username" required>
+            <input class="lf-input" type="email" id="lf-email" placeholder="admin@example.com" autocomplete="email" required>
           </div>
-          <div class="lf-error" id="err-username">Please enter your username.</div>
+          <div class="lf-error" id="err-email">Please enter a valid email address.</div>
         </div>
 
         <div class="lf-group">
@@ -646,7 +647,7 @@
               </svg>
             </button>
           </div>
-          <div class="lf-error" id="err-password">Incorrect credentials. Try admin / admin123</div>
+          <div class="lf-error" id="err-password">Incorrect credentials. Try admin@example.com / admin123</div>
         </div>
 
         <button type="submit" class="lf-btn" id="login-btn">
@@ -893,51 +894,104 @@
     })();
 
     /* ── Auth ── */
-    const ADMIN_USER = 'admin';
-    const ADMIN_PASS = 'admin123';
-    const AUTH_KEY   = 'portfolio_admin_token';
+    const API_BASE = 'http://localhost:5001/api';
 
-    function isLoggedIn() {
-      return !!sessionStorage.getItem(AUTH_KEY);
+    // Check existing session on load
+    async function checkAuthSession() {
+      try {
+        const res = await fetch(`${API_BASE}/auth/me`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include' // crucial for HTTP-only cookies
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.admin) {
+            updateUserDisplay(data.admin);
+            showDashboard();
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Session check failed:', err);
+      }
+      // Ensure we are showing login if not authenticated
+      document.getElementById('login-screen').classList.remove('hidden');
+      document.getElementById('dashboard-screen').style.display = 'none';
     }
 
-    function handleLogin(e) {
+    function updateUserDisplay(admin) {
+      const email = admin.email || 'admin@example.com';
+      const userInitials = email.substring(0, 2).toUpperCase();
+      document.querySelector('.user-avatar').textContent = userInitials;
+      document.querySelector('.user-name').textContent = email.split('@')[0];
+      document.querySelector('.user-role').textContent = admin.role === 'superadmin' ? 'Super Admin' : 'Admin';
+    }
+
+    async function handleLogin(e) {
       e.preventDefault();
-      const username = document.getElementById('lf-username').value.trim();
+      const email = document.getElementById('lf-email').value.trim();
       const password = document.getElementById('lf-password').value;
       const btn      = document.getElementById('login-btn');
-      const errUser  = document.getElementById('err-username');
+      const errEmail = document.getElementById('err-email');
       const errPass  = document.getElementById('err-password');
 
       // Reset errors
-      errUser.classList.remove('show');
+      errEmail.classList.remove('show');
       errPass.classList.remove('show');
-      document.getElementById('lf-username').classList.remove('error-field');
+      document.getElementById('lf-email').classList.remove('error-field');
       document.getElementById('lf-password').classList.remove('error-field');
 
-      if (!username) {
-        errUser.classList.add('show');
-        document.getElementById('lf-username').classList.add('error-field');
-        return;
+      let hasError = false;
+      const emailRegex = /^\S+@\S+\.\S+$/;
+
+      if (!email || !emailRegex.test(email)) {
+        errEmail.classList.add('show');
+        document.getElementById('lf-email').classList.add('error-field');
+        hasError = true;
       }
+      
+      if (!password || password.length < 6) {
+        errPass.textContent = 'Password must be at least 6 characters.';
+        errPass.classList.add('show');
+        document.getElementById('lf-password').classList.add('error-field');
+        hasError = true;
+      }
+
+      if (hasError) return;
 
       btn.classList.add('loading');
       btn.disabled = true;
 
-      setTimeout(() => {
-        if (username === ADMIN_USER && password === ADMIN_PASS) {
-          const token = btoa(`${username}:${Date.now()}`);
-          sessionStorage.setItem(AUTH_KEY, token);
+      try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+          credentials: 'include' // secure cookie delivery
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          updateUserDisplay(data.admin);
           showDashboard();
-          showToast('Welcome back, Admin! 👋', 'success');
+          showToast('Welcome back! 👋', 'success');
+          document.getElementById('lf-password').value = '';
         } else {
+          errPass.textContent = data.message || 'Invalid credentials. Please try again.';
           errPass.classList.add('show');
           document.getElementById('lf-password').classList.add('error-field');
-          showToast('Invalid credentials. Please try again.', 'error');
-          btn.classList.remove('loading');
-          btn.disabled = false;
+          showToast(data.message || 'Login failed.', 'error');
         }
-      }, 900);
+      } catch (err) {
+        console.error('Login error:', err);
+        showToast('Server is currently unreachable. Please try again later.', 'error');
+      } finally {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
     }
 
     function showDashboard() {
@@ -949,12 +1003,24 @@
       initChart();
     }
 
-    function handleLogout() {
-      sessionStorage.removeItem(AUTH_KEY);
+    async function handleLogout() {
+      try {
+        const res = await fetch(`${API_BASE}/auth/logout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include'
+        });
+        if (res.ok) {
+          showToast('Logged out successfully.', 'info');
+        }
+      } catch (err) {
+        console.error('Logout failed:', err);
+      }
+      
       document.getElementById('dashboard-screen').style.display = 'none';
+      document.getElementById('dashboard-screen').classList.remove('visible');
       document.getElementById('login-screen').classList.remove('hidden');
       document.getElementById('lf-password').value = '';
-      showToast('Logged out successfully.', 'info');
     }
 
     /* ── Password toggle ── */
@@ -969,8 +1035,8 @@
     /* ── Login form ── */
     document.getElementById('login-form').addEventListener('submit', handleLogin);
 
-    /* ── Check existing session ── */
-    if (isLoggedIn()) showDashboard();
+    // Initial session check
+    checkAuthSession();
 
     /* ── Chart ── */
     let chartInitialized = false;

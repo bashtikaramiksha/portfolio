@@ -531,7 +531,7 @@
 
     .hi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 1.25rem;
       margin-top: 3rem;
     }
@@ -552,9 +552,9 @@
     }
     
     .hi span {
-      word-break: break-all;
-      white-space: normal;
-      overflow-wrap: break-word;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
       flex: 1;
       min-width: 0;
     }
@@ -788,6 +788,42 @@
       border-color: var(--primary-400);
       color: var(--text-100);
       transform: translateY(-1px);
+    }
+
+    .pc-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+      padding: 0.65rem 1.35rem;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-200);
+      border: 1px solid var(--border-light);
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: var(--t-smooth);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      align-self: flex-start;
+    }
+
+    .pc-btn:hover {
+      background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+    }
+
+    .pc-btn svg {
+      transition: transform 0.3s ease;
+    }
+
+    .pc-btn:hover svg {
+      transform: translate(1px, -1px);
     }
 
     /* ===== EDUCATION ===== */
@@ -1652,6 +1688,12 @@
             <div class="pc-desc">An intelligent web application that helps students and professionals discover ideal career paths through skill assessments, personality analysis, and personalized job recommendations.</div>
             <div class="pc-tags"><span class="pt">HTML</span><span class="pt">CSS</span><span class="pt">JavaScript</span><span
                 class="pt">Node.js</span></div>
+            <a href="https://carrier-path-g693.onrender.com/dashboard.html" target="_blank" class="pc-btn">
+              <span>Live Demo</span>
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>
+              </svg>
+            </a>
           </div>
         </div>
       </div>

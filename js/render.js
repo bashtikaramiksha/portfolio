@@ -22,6 +22,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Auto-migration for Smart Career Guidance System live demo link
+  if (data.projects) {
+    const careerGuidanceProj = data.projects.find(p => p.name === "Smart Career Guidance System");
+    if (careerGuidanceProj && !careerGuidanceProj.demo) {
+      careerGuidanceProj.demo = "https://carrier-path-g693.onrender.com/dashboard.html";
+      PortfolioDB.save(data);
+    }
+  }
+
   // Apply Theme
   document.documentElement.style.setProperty('--primary-500', data.theme.primaryColor);
   document.documentElement.style.setProperty('--secondary-500', data.theme.secondaryColor);
@@ -89,7 +98,19 @@ document.addEventListener("DOMContentLoaded", () => {
       proj.tags.forEach(tag => {
         projHtml += `<span class="pt">${tag}</span>`;
       });
-      projHtml += `</div></div></div>`;
+      projHtml += `</div>`;
+      
+      // Render Live Demo button if demo link is available
+      if (proj.demo) {
+        projHtml += `<a href="${proj.demo}" target="_blank" class="pc-btn">
+          <span>Live Demo</span>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>
+          </svg>
+        </a>`;
+      }
+      
+      projHtml += `</div></div>`;
     });
     projGrid.innerHTML = projHtml;
   }
