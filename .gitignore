@@ -1,0 +1,9 @@
+# Local Portable Git
+git/
+PortableGit.exe
+
+# Editor & System Files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
